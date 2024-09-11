@@ -12,14 +12,52 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+          useMaterial3: true,
+        ),
+        home: const MyHomePage(title: 'Flutter Home Page'),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page _ Updated'),
     );
+  }
+}
+
+class MyAppState extends ChangeNotifier {
+  int _counter = 0;
+  WordPair curWPObj = WordPair.random();
+  var favWPList = <WordPair>[];
+
+  MyAppState() {
+    _counter = 0;
+    favWPList.add(WordPair('Hello', 'World'));
+  }
+
+  void _getNewIdea() {
+    curWPObj = WordPair.random();
+    notifyListeners();
+  }
+
+  void _toggleFavoriteWordPair() {
+    if (favWPList.contains(curWPObj)) {
+      favWPList.remove(curWPObj);
+    } else {
+      favWPList.add(curWPObj);
+    }
+    notifyListeners();
+  }
+
+  void _resetFavorites() {
+    favWPList.clear();
+    notifyListeners();
+  }
+
+  void _incrementCounter() {
+    _counter++;
+    notifyListeners();
   }
 }
 
@@ -33,109 +71,156 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  WordPair curWPObj = WordPair.random();
-  var favWPList = <WordPair>[];
-
-  _MyHomePageState() {
-    favWPList.add(WordPair('Hello', 'World'));
-  }
-  void _getNewIdea() {
-    setState(() {
-      curWPObj = WordPair.random();
-    });
-  }
-
-  void _toggleFavoriteWordPair() {
-    setState(() {
-      if (favWPList.contains(curWPObj)) {
-        favWPList.remove(curWPObj);
-      } else {
-        favWPList.add(curWPObj);
-      }
-    });
-  }
-
-  void _resetFavorites() {
-    setState(() {
-      favWPList.clear();
-    });
-  }
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  var selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    //var appState = context.watch<MyAppState>();
+
+    Widget pageToShow;
+    switch (selectedIndex) {
+      case 0:
+        pageToShow = const SelectionPage();
+        break;
+      case 1:
+        pageToShow = const FavoritePage();
+        break;
+      case 2:
+        pageToShow = const CounterDemo();
+        break;
+      default:
+        throw UnimplementedError("Invalid page @ $selectedIndex");
+    }
+
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
-        ),
-        body: Center(
-            child: Column(
+      body: Row(
+        children: [
+          SafeArea(
+              child: NavigationRail(
+            extended: false,
+            destinations: const [
+              NavigationRailDestination(icon: Icon(Icons.home), label: Text('Home')),
+              NavigationRailDestination(icon: Icon(Icons.favorite_rounded), label: Text('Favorites')),
+              NavigationRailDestination(icon: Icon(Icons.streetview), label: Text('Counter')),
+            ],
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (value) {
+              setState(() {
+                selectedIndex = value;
+              });
+            },
+          )),
+          Expanded(child: Container(color: Theme.of(context).colorScheme.primaryContainer, child: pageToShow))
+        ],
+      ),
+    );
+  }
+}
+
+class SelectionPage extends StatelessWidget {
+  const SelectionPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var curWP = appState.curWPObj;
+
+    IconData iconFav;
+    if (appState.favWPList.contains(curWP)) {
+      iconFav = Icons.favorite;
+    } else {
+      iconFav = Icons.favorite_border;
+    }
+
+    return Center(
+        child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                    width: 400,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('A random idea !!!',
-                            style: TextStyle(fontSize: 20, color: Colors.cyan)),
-                        WPCardWidget(wpObject: curWPObj),
-                      ],
-                    )),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    IconButton(
-                        onPressed: _toggleFavoriteWordPair,
-                        icon: const Icon(Icons.favorite,
-                            color: Colors.pinkAccent, size: 30)),
-                    IconButton(
-                        onPressed: _getNewIdea,
-                        icon: const Icon(Icons.refresh,
-                            color: Colors.green, size: 30)),
+            SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('A random title idea !!!', style: TextStyle(fontSize: 30, color: Colors.cyan)),
+                    WPCardWidget(wpObject: curWP),
                   ],
+                )),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    appState._toggleFavoriteWordPair();
+                  },
+                  icon: Icon(iconFav),
+                ),
+                IconButton(
+                  onPressed: () {
+                    appState._getNewIdea();
+                  },
+                  icon: const Icon(Icons.refresh, color: Colors.green, size: 30),
                 ),
               ],
             ),
-            const SizedBox(height: 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Favorite Ideas: ', style: TextStyle(fontSize: 20)),
-                WPListWidget(favWPList: favWPList),
-                ElevatedButton(
-                    onPressed: _resetFavorites,
-                    child: const Icon(Icons.delete,
-                        color: Colors.redAccent, size: 20)),
-              ],
-            ),
-            const SizedBox(height: 150),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text('You have pushed bottom button this many times:\t'),
-                Text('$_counter',
-                    style: Theme.of(context).textTheme.headlineMedium),
-                FloatingActionButton(
-                    onPressed: _incrementCounter,
-                    tooltip: 'Increment',
-                    child: const Icon(Icons.add)),
-              ],
-            ),
-            // This trailing comma makes auto-formatting nicer for build methods.
           ],
-        )));
+        )
+      ],
+    ));
+  }
+}
+
+class FavoritePage extends StatelessWidget {
+  const FavoritePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('Favorite Ideas: ', style: TextStyle(fontSize: 20)),
+          WPListWidget(favWPList: appState.favWPList),
+          ElevatedButton(
+              onPressed: () {
+                appState._resetFavorites();
+              },
+              child: const Icon(Icons.delete, color: Colors.redAccent, size: 20)),
+        ],
+      ),
+    );
+  }
+}
+
+class CounterDemo extends StatelessWidget {
+  const CounterDemo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var counter = appState._counter;
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 200),
+          Text(
+            'You have pushed this button\t $counter \tmany times.\t',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          FloatingActionButton(
+            onPressed: appState._incrementCounter,
+            tooltip: 'Increment',
+            foregroundColor: Colors.blue,
+            backgroundColor: Colors.black,
+            child: const Icon(Icons.add),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -150,8 +235,7 @@ class WPCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = theme.textTheme.displayMedium!
-        .copyWith(color: theme.colorScheme.onPrimary);
+    final style = theme.textTheme.displayMedium!.copyWith(color: theme.colorScheme.onPrimary);
 
     return Card(
       color: theme.colorScheme.secondary,
@@ -160,8 +244,7 @@ class WPCardWidget extends StatelessWidget {
       shadowColor: theme.colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.only(left: 10),
-        child: Text(wpObject.asPascalCase,
-            style: style, textAlign: TextAlign.left),
+        child: Text(wpObject.asPascalCase, style: style, textAlign: TextAlign.left),
       ),
     );
   }
@@ -197,14 +280,12 @@ class _WPListWidgetState extends State<WPListWidget> {
         child: Wrap(
             alignment: WrapAlignment.center,
             spacing: 20,
-            children:
-                List<Widget>.generate(widget.favWPList.length, (int index) {
+            children: List<Widget>.generate(widget.favWPList.length, (int index) {
               return TextButton(
                   onPressed: () {
                     _removeFav(index);
                   },
-                  child:
-                      Text(widget.favWPList[index].asPascalCase, style: style));
+                  child: Text(widget.favWPList[index].asPascalCase, style: style));
             })),
       ),
     );
