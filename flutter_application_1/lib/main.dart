@@ -87,7 +87,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('A random idea !!!', style: TextStyle(fontSize: 20, color: Colors.cyan)),
+                        const Text('A random idea !!!',
+                            style: TextStyle(fontSize: 20, color: Colors.cyan)),
                         WPCardWidget(wpObject: curWPObj),
                       ],
                     )),
@@ -97,8 +98,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: <Widget>[
                     IconButton(
                         onPressed: _toggleFavoriteWordPair,
-                        icon: const Icon(Icons.favorite, color: Colors.pinkAccent, size: 30)),
-                    IconButton(onPressed: _getNewIdea, icon: const Icon(Icons.refresh, color: Colors.green, size: 30)),
+                        icon: const Icon(Icons.favorite,
+                            color: Colors.pinkAccent, size: 30)),
+                    IconButton(
+                        onPressed: _getNewIdea,
+                        icon: const Icon(Icons.refresh,
+                            color: Colors.green, size: 30)),
                   ],
                 ),
               ],
@@ -110,15 +115,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 const Text('Favorite Ideas: ', style: TextStyle(fontSize: 20)),
                 WPListWidget(favWPList: favWPList),
                 ElevatedButton(
-                    onPressed: _resetFavorites, child: const Icon(Icons.delete, color: Colors.redAccent, size: 20)),
+                    onPressed: _resetFavorites,
+                    child: const Icon(Icons.delete,
+                        color: Colors.redAccent, size: 20)),
               ],
             ),
             const SizedBox(height: 150),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              const Text('You have pushed bottom button this many times:\t'),
-              Text('$_counter', style: Theme.of(context).textTheme.headlineMedium),
-              FloatingActionButton(onPressed: _incrementCounter, tooltip: 'Increment', child: const Icon(Icons.add)),
-            ]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('You have pushed bottom button this many times:\t'),
+                Text('$_counter',
+                    style: Theme.of(context).textTheme.headlineMedium),
+                FloatingActionButton(
+                    onPressed: _incrementCounter,
+                    tooltip: 'Increment',
+                    child: const Icon(Icons.add)),
+              ],
+            ),
             // This trailing comma makes auto-formatting nicer for build methods.
           ],
         )));
@@ -136,7 +150,8 @@ class WPCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = theme.textTheme.displayMedium!.copyWith(color: theme.colorScheme.onPrimary);
+    final style = theme.textTheme.displayMedium!
+        .copyWith(color: theme.colorScheme.onPrimary);
 
     return Card(
       color: theme.colorScheme.secondary,
@@ -145,7 +160,8 @@ class WPCardWidget extends StatelessWidget {
       shadowColor: theme.colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.only(left: 10),
-        child: Text(wpObject.asPascalCase, style: style, textAlign: TextAlign.left),
+        child: Text(wpObject.asPascalCase,
+            style: style, textAlign: TextAlign.left),
       ),
     );
   }
@@ -181,12 +197,14 @@ class _WPListWidgetState extends State<WPListWidget> {
         child: Wrap(
             alignment: WrapAlignment.center,
             spacing: 20,
-            children: List<Widget>.generate(widget.favWPList.length, (int index) {
+            children:
+                List<Widget>.generate(widget.favWPList.length, (int index) {
               return TextButton(
                   onPressed: () {
                     _removeFav(index);
                   },
-                  child: Text(widget.favWPList[index].asPascalCase, style: style));
+                  child:
+                      Text(widget.favWPList[index].asPascalCase, style: style));
             })),
       ),
     );
