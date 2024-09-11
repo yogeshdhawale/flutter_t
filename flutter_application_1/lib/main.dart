@@ -49,8 +49,11 @@ class MyAppState extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  void _resetFavorites() {
+  void _removeFavoriteItem(int index) {
+      favWPList.remove(favWPList[index]);
+      notifyListeners();
+  }
+  void _clearFavoriteList() {
     favWPList.clear();
     notifyListeners();
   }
@@ -73,24 +76,22 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
 
-  @override
-  Widget build(BuildContext context) {
-    //var appState = context.watch<MyAppState>();
-
-    Widget pageToShow;
+  Widget getPageToShow(int selectedIndex) {
     switch (selectedIndex) {
       case 0:
-        pageToShow = const SelectionPage();
-        break;
+        return const SelectionPage();
       case 1:
-        pageToShow = const FavoritePage();
-        break;
+        return const FavoritePage();
       case 2:
-        pageToShow = const CounterDemo();
-        break;
+        return const CounterDemo();
       default:
         throw UnimplementedError("Invalid page @ $selectedIndex");
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //var appState = context.watch<MyAppState>();
 
     return Scaffold(
       body: Row(
@@ -110,7 +111,11 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
           )),
-          Expanded(child: Container(color: Theme.of(context).colorScheme.primaryContainer, child: pageToShow))
+          Expanded(
+              child: Container(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: getPageToShow(selectedIndex),
+          ))
         ],
       ),
     );
@@ -155,7 +160,11 @@ class SelectionPage extends StatelessWidget {
                   onPressed: () {
                     appState._toggleFavoriteWordPair();
                   },
-                  icon: Icon(iconFav),
+                  icon: Icon(
+                    iconFav,
+                    color: Colors.pinkAccent,
+                    size: 30,
+                  ),
                 ),
                 IconButton(
                   onPressed: () {
@@ -175,6 +184,28 @@ class SelectionPage extends StatelessWidget {
 class FavoritePage extends StatelessWidget {
   const FavoritePage({super.key});
 
+
+  Container buildFavoriteList(BuildContext context, MyAppState appState) {
+
+    final theme = Theme.of(context);
+    final style = theme.textTheme.titleLarge!.copyWith(color: Colors.blue);
+    return Container(
+      decoration: BoxDecoration(border: Border.all(width: 1)),
+      child: SizedBox(
+          width: 400,
+          child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 20,
+              children: List<Widget>.generate(appState.favWPList.length, (int index) {
+                return ListTile(
+                  title: Text(appState.favWPList[index].asCamelCase, style: style,),
+                  onLongPress: () {
+                    appState._removeFavoriteItem(index);
+                  },
+                );
+              }))),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -182,13 +213,13 @@ class FavoritePage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('Favorite Ideas: ', style: TextStyle(fontSize: 20)),
-          WPListWidget(favWPList: appState.favWPList),
+          Text('Favorite Ideas: ${appState.favWPList.length}\t', style: const TextStyle(fontSize: 20)),
           ElevatedButton(
               onPressed: () {
-                appState._resetFavorites();
+                appState._clearFavoriteList();
               },
               child: const Icon(Icons.delete, color: Colors.redAccent, size: 20)),
+          buildFavoriteList(context, appState),
         ],
       ),
     );
@@ -201,20 +232,19 @@ class CounterDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var counter = appState._counter;
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 200),
           Text(
-            'You have pushed this button\t $counter \tmany times.\t',
+            'You have pushed this button\t ${appState._counter} \tmany times.\t',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           FloatingActionButton(
             onPressed: appState._incrementCounter,
             tooltip: 'Increment',
-            foregroundColor: Colors.blue,
+            foregroundColor: Colors.yellowAccent,
             backgroundColor: Colors.black,
             child: const Icon(Icons.add),
           ),
@@ -250,44 +280,5 @@ class WPCardWidget extends StatelessWidget {
   }
 }
 
-class WPListWidget extends StatefulWidget {
-  const WPListWidget({
-    super.key,
-    required this.favWPList,
-  });
 
-  final List<WordPair> favWPList;
 
-  @override
-  State<StatefulWidget> createState() => _WPListWidgetState();
-}
-
-class _WPListWidgetState extends State<WPListWidget> {
-  void _removeFav(int index) {
-    setState(() {
-      widget.favWPList.remove(widget.favWPList[index]);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.titleMedium!.copyWith(color: Colors.green);
-    return Container(
-      decoration: BoxDecoration(border: Border.all(width: 1)),
-      child: SizedBox(
-        width: 400,
-        child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 20,
-            children: List<Widget>.generate(widget.favWPList.length, (int index) {
-              return TextButton(
-                  onPressed: () {
-                    _removeFav(index);
-                  },
-                  child: Text(widget.favWPList[index].asPascalCase, style: style));
-            })),
-      ),
-    );
-  }
-}
